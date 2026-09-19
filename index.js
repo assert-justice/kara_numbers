@@ -51,6 +51,24 @@ function displayKeys(){
     init(canvasWidth * 2, canvasHeight * values.length);
     renderNumbers(values);
 }
+function displaySingleDigits(){
+    rootNode = document.querySelector("#root");
+    while (rootNode.firstChild) {
+        rootNode.removeChild(rootNode.firstChild);
+    }
+    for (const d of [1,2,3,4,5,6]) {
+        canvas = document.createElement("canvas");
+        canvas.width = cellSize * 22;
+        canvas.height = cellSize * 22;
+        rootNode.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+        ctx.strokeStyle = strokeColorNode?.value ?? "#C1AB00";
+        ctx.lineWidth = 4;
+        ctx.fillStyle = bgColorNode?.value ?? "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawSingleDigit(d, canvas.width * 0.5, canvas.height * 0.5);
+    }
+}
 function renderNumbers(values){
     for(let idx = 0; idx < values.length; idx++){
         const [text, number] = values[idx];
@@ -75,6 +93,24 @@ function drawNumber(number, x, y, segments = 12){
         drawDigit(d, x, y, angle);
         angle += da;
     }
+}
+function drawSingleDigit(digit, x, y){
+    drawCircle(x, y, cellSize * 10);
+    drawCircle(x - cellSize * 8, y, cellSize);
+    if(digit === 0) return;
+    drawLine(x - cellSize * 7, y, x + cellSize * 7, y);
+    if(digit === 1) return;
+    drawLine(x + cellSize * 7, y - cellSize, x + cellSize * 7, y + cellSize * 2);
+    if(digit === 2) return;
+    drawCircle(x + cellSize * 7, y - cellSize * 2, cellSize);
+    if(digit === 3) return;
+    drawLine(x, y - cellSize, x, y + cellSize * 2);
+    if(digit === 4) return;
+    drawCircle(x, y - cellSize * 2, cellSize);
+    if(digit === 5) return;
+    const [xa,ya] = rotateVec(cellSize, 0, -Math.PI / 3);
+    const [xb,yb] = rotateVec(cellSize * 6, 0, -Math.PI / 3);
+    drawLine(xa - cellSize * 8 + x, ya + y, xb - cellSize * 8 + x, yb + y);
 }
 function toDigits(number){
     const res = [];
