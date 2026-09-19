@@ -65,7 +65,7 @@ function displaySingleDigits(){
         ctx.strokeStyle = strokeColorNode?.value ?? "#C1AB00";
         ctx.lineWidth = 4;
         ctx.fillStyle = bgColorNode?.value ?? "#000000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
         drawSingleDigit(d, canvas.width * 0.5, canvas.height * 0.5);
     }
 }
@@ -95,11 +95,18 @@ function drawNumber(number, x, y, segments = 12){
     }
 }
 function drawSingleDigit(digit, x, y){
+    drawCircle(x, y, cellSize * 10, true);
     drawCircle(x, y, cellSize * 10);
     drawCircle(x - cellSize * 8, y, cellSize);
     if(digit === 0) return;
     drawLine(x - cellSize * 7, y, x + cellSize * 7, y);
     if(digit === 1) return;
+    if(digit === 6){
+        const [xa,ya] = rotateVec(cellSize, 0, -Math.PI / 3);
+        const [xb,yb] = rotateVec(cellSize * 6, 0, -Math.PI / 3);
+        drawLine(xa - cellSize * 8 + x, ya + y, xb - cellSize * 8 + x, yb + y);
+        return;
+    }
     drawLine(x + cellSize * 7, y - cellSize, x + cellSize * 7, y + cellSize * 2);
     if(digit === 2) return;
     drawCircle(x + cellSize * 7, y - cellSize * 2, cellSize);
@@ -107,10 +114,56 @@ function drawSingleDigit(digit, x, y){
     drawLine(x, y - cellSize, x, y + cellSize * 2);
     if(digit === 4) return;
     drawCircle(x, y - cellSize * 2, cellSize);
-    if(digit === 5) return;
-    const [xa,ya] = rotateVec(cellSize, 0, -Math.PI / 3);
-    const [xb,yb] = rotateVec(cellSize * 6, 0, -Math.PI / 3);
-    drawLine(xa - cellSize * 8 + x, ya + y, xb - cellSize * 8 + x, yb + y);
+}
+function renderBoard(){
+    const size = cellSize * 22;
+    const half = size / 2;
+    const r = cellSize * 10;
+    const w = size * 3;
+    const h = size * 7;
+    const coords = [
+        [3,1],
+        [4,0],
+        [5,1],
+        [4,2],
+        [2,2],
+        [1,1],
+        [2,0],
+    ];
+    const mappedCoords = coords.map(n => {
+        const [x,y] = n;
+        return [y * size + half, x * size + half];
+    });
+    init(w, h);
+    ctx.fillStyle = "#C1AB00";
+    let xa,ya;
+    for(let idx = 0; idx < mappedCoords.length; idx++){
+        [xa,ya] = mappedCoords[idx];
+        drawCircle(xa, ya, r, true);
+        if(coords[idx][0] < 3){
+            ctx.strokeText(idx, xa - half/2, ya - half);
+        }
+        else if(coords[idx][0] > 3){
+            ctx.strokeText(idx, xa-half/2, ya + half * 2);
+        }
+    }
+    ctx.lineWidth = 8;
+    // draw connections
+    drawConnection(mappedCoords[0], mappedCoords[1]);
+    drawConnection(mappedCoords[0], mappedCoords[2]);
+    drawConnection(mappedCoords[0], mappedCoords[3]);
+    drawConnection(mappedCoords[0], mappedCoords[4]);
+    drawConnection(mappedCoords[0], mappedCoords[5]);
+    drawConnection(mappedCoords[0], mappedCoords[6]);
+    drawConnection(mappedCoords[1], mappedCoords[2]);
+    drawConnection(mappedCoords[2], mappedCoords[3]);
+    drawConnection(mappedCoords[3], mappedCoords[4]);
+    drawConnection(mappedCoords[4], mappedCoords[5]);
+    drawConnection(mappedCoords[5], mappedCoords[6]);
+    drawConnection(mappedCoords[6], mappedCoords[1]);
+}
+function drawConnection([xa, ya], [xb, yb]){
+    drawLine(xa, ya, xb, yb);
 }
 function toDigits(number){
     const res = [];
@@ -148,7 +201,7 @@ function drawDigit(digit, x, y, angle){
     [xa,ya] = rotateVec(cellSize * 18, -4 * cellSize, angle);
     drawCircle(xa + x, ya + y, cellSize);
 }
-function drawCircle(x, y, r){
+function drawCircle(x, y, r, filled = false){
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     const segments = 48;
@@ -158,7 +211,8 @@ function drawCircle(x, y, r){
         ctx.lineTo(Math.cos(angle) * r + x, Math.sin(angle) * r + y);
         angle += da;
     }
-    ctx.stroke();
+    if(filled) ctx.fill();
+    else ctx.stroke();
 }
 function rotateVec(x, y, angle){
     const s = Math.sin(angle);
